@@ -1,0 +1,12 @@
+{
+    "files.exclude": {
+        "**/.git": false,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true
+    },
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "cmake.generator": "Ninja",
+    
+}
