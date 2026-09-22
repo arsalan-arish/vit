@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <vit/types.h>
 
-typedef unsigned char u8;
 
-void printb(u8* data, size_t size, bool little_endian) {
-    for (int i = 0; i < size; i++) {
+static 
+void printb(u8* const data, usize size, b8 little_endian) {
+    for (usize i = 0; i < size; i++) {
         u8 byte = little_endian ? data[i] : data[size - i - 1];
-        for (int j = 7; j >= 0; j--) {
+        for (isize j = 7; j >= 0; j--) {
             printf("%d", (byte >> j) & 1);
         }
         printf(" ");
@@ -16,7 +17,7 @@ void printb(u8* data, size_t size, bool little_endian) {
 }
 
 
-int main() {
+int main(void) {
     /*  There are 2 fundamental numeric data types in C:
     *       int & float, and their variations of different sizes
     *
@@ -29,5 +30,11 @@ int main() {
             Structs to group data
             Unions & Enums for specific behavior with data types
     */
-    
+    /*
+        The point of 'unsigned' in C:
+            - Some integer operations like division, bit shifts, comparisons, and type casting (width changing) are done with different CPU instructions based on whether it is signed or unsigned
+            - So generally, when representing raw arbitrary byte data, always use unsigned ints for normal behavior. Signed ones have exclusive behavior with these operations
+    */
+    //! Type Casting in C
+            
 }
