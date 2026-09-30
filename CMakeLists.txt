@@ -3,44 +3,46 @@ project(vit LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
-add_executable(${PROJECT_NAME} "src/main.c" "src/vit_cli_parser.c" "src/commands/init.c" "src/subsystems/cli_parser.c" "src/subsystems/utils.c")
-
+add_executable( ${PROJECT_NAME} 
+    "src/main.c" 
+    "src/vit_cli_parser.c" 
+    "src/commands/init.c" 
+    "src/subsystems/cli_parser.c" 
+    "src/subsystems/utils.c"
+)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-# 
-# option(VIT_SUPER_OPTIMIZE "Enable very aggressive optimizations (defaults ON)" ON)
-# 
-# 
-# # Always build without asserts/with NDEBUG for optimized builds
-# target_compile_definitions(${PROJECT_NAME} PRIVATE NDEBUG)
-# 
-# # Aggressive, cross-platform optimization flags. Use generator expressions to
-# # apply compiler-specific flags. These aim for maximum runtime performance
-# # (LTO/whole-program, vectorization, fast-math, inlining).
-# target_compile_options(${PROJECT_NAME} PRIVATE
-#   # Only add aggressive MSVC optimization flags for non-Debug configs to avoid
-#   # conflicts with runtime checks (e.g. /RTC1). In Debug keep default flags.
-#   $<$<AND:$<C_COMPILER_ID:MSVC>,$<NOT:$<CONFIG:Debug>>>:/O2 /Ob2 /Oi /GL /arch:AVX2 /fp:fast /utf-8>
-#   # For non-MSVC compilers, enable -O3 and LTO only for non-Debug configs.
-#   $<$<AND:$<NOT:$<C_COMPILER_ID:MSVC>>,$<NOT:$<CONFIG:Debug>>>:-O3 -march=native -flto -ffast-math -funroll-loops -fomit-frame-pointer>
-# )
-# 
-# # Link-time optimization and non-incremental linking for best performance
-# target_link_options(${PROJECT_NAME} PRIVATE
-#   # Apply link-time codegen only for non-Debug configs.
-#   $<$<AND:$<C_COMPILER_ID:MSVC>,$<NOT:$<CONFIG:Debug>>>:/LTCG /INCREMENTAL:NO>
-#   $<$<AND:$<NOT:$<C_COMPILER_ID:MSVC>>,$<NOT:$<CONFIG:Debug>>>:-flto -s>
-# )
-# 
-# # Request CMake's interprocedural optimization where supported
-# set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
-# 
-# # Allow users to disable the "super optimize" bundle if needed
-# if(NOT VIT_SUPER_OPTIMIZE)
-#   message(STATUS "VIT_SUPER_OPTIMIZE=OFF: removing aggressive compile/link flags")
-#   # Remove the previously set target properties by clearing options
-#   target_compile_options(${PROJECT_NAME} PRIVATE "")
-#   target_link_options(${PROJECT_NAME} PRIVATE "")
-#   set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION OFF)
-# endif()
+
+## === Replicate the Visual Studio Environment ===
+
+target_include_directories(vit PRIVATE
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/include"
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/atlmfc/include"
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Auxiliary/VS/include"
+    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt"
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Auxiliary/VS/UnitTest/include"
+    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um"
+    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared"
+    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/winrt"
+    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/cppwinrt"
+)
+
+set(ENV{PATH}
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64;C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x86;C:/Program Files/Microsoft Visual Studio/18/Community/Common7/tools;C:/Program Files/Microsoft Visual Studio/18/Community/Common7/ide;C:/Program Files (x86)/HTML Help Workshop;C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64;C:/WINDOWS/Microsoft.NET/Framework64/v4.0.30319;C:/WINDOWS/Microsoft.NET/Framework/v4.0.30319;C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin;C:/WINDOWS/system32;C:/WINDOWS;C:/WINDOWS/System32/Wbem;C:/WINDOWS/System32/WindowsPowerShell/v1.0;C:/WINDOWS/System32/OpenSSH;C:/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR;C:/Program Files (x86)/NVIDIA Corporation/PhysX/Common;C:/Users/arish/.local/bin;C:/Program Files/nodejs;C:/Program Files/Git/cmd;C:/Program Files/NVIDIA Corporation/Nsight Compute 2025.3.1;C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit;C:/Program Files/Neovim/bin;C:/Program Files/Neovide;C:/Users/arish/AppData/Local/Microsoft/WindowsApps;C:/Users/arish/AppData/Local/bin/NASM;C:/Users/arish/custom_cli;C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin;C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja;C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native;$ENV{PATH}"
+)
+
+target_link_directories(vit PRIVATE
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/lib/x64"
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/atlmfc/lib/x64"
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Auxiliary/VS/lib/x64"
+    "C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/ucrt/x64"
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Auxiliary/VS/UnitTest/lib"
+    "C:/Program Files (x86)/Windows Kits/10/lib/10.0.26100.0/um/x64"
+)
+
+target_compile_options(vit PRIVATE
+    "/AI\"C:/Program Files (x86)/Windows Kits/10/References\""
+)
+
+## === Done Replicating ===
