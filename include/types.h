@@ -1,7 +1,10 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <stddef.h>
+#include <float.h>
 
-#define null NULL
+#define null (void*) (0)
 
 typedef int8_t i8;
 typedef int16_t i16;
