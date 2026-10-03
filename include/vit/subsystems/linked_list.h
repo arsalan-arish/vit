@@ -24,25 +24,35 @@ typedef struct {
     struct {
         b8 is;
         enum {
-          LIST_INDEX_OUT_OF_RANGE = 1,
-          LIST_POP_FROM_EMPTY_LIST,
-          LIST_VALUE_NOT_FOUND,
-          LIST_HEAP_FAILURE,
+          list_INDEX_OUT_OF_RANGE = 1,
+          list_POP_FROM_EMPTY_LIST,
+          list_VALUE_NOT_FOUND,
+          list_HEAP_FAILURE,
         } code;
     } err; // if (err.is) check is convenient
 } list;
 
 
 //*TODO: Fix Interface Problems
+
+//* Solve the prob of handling error-signalling, freeable resources, and return types for stateful functions
 //* The error raising functions do not indicate so
 //* The freeable resource returning functions do not indicate so, nor are the freeing functions provided following the naming convention
 
-// Constructors
+//* Create standardized comments for all functions
+//* Clean up the codebase
+
+/* Convention
+    Functions starting with List_ are constructors
+    Functions are namespace prefixed with list_
+    Internal API Functions are prefixed with _list_ 
+    Functions accepting list* parameter are stateful methods
+    Functions not accepting list* are stateless utils (or static associated functions only)
+*/
+
 list List(void);
 list List_fromArray(list* list, u8* arr, usize dataLen, usize arrLen);
 
-// These three insertion functions return pointers to buffers of the size specified.
-// Then the user writes their actual data into the buffer
 item list_append(list* list, usize dataLen);
 item list_prepend(list* list, usize dataLen);
 item list_insert(list* list, usize dataLen, i64 index, b8 replace);
@@ -58,11 +68,25 @@ isize list_getInvertedIndex(list* list, i64 index);
 
 void list_free_item(item item); 
 void list_free_list(list* list);
-void list__free_node(node* node);
+void _list_free_node(node* node);
 
-node* list__createNode(usize dataLen, void** data_buffer);
-node* list__findNodeByIndex(list* list, i64 index);
-isize list__optimizeIndex(list* list, i64 index);
-void list__extractNodeFromList(list* list, node* node);
-item list__extractItemFromNode(node* node);
-void list__checkIndexInRange(list* list, i64 index);
+/*
+    _list_createNode: Internal stateless function 
+
+    Doc:
+        Constructs the 'node' type on the heap, and returns a pointer to it
+
+    @param dataBufferPtr => An arbitrary pointer to a 'pointer location', where the address of the buffer will be written
+    @param dataLen     => The size of the databuffer
+    @return node*
+
+    Error -> return sentinel-based:
+        null => Heap failure (the OS did not give the requested memory)
+*/
+node* _list_createNode(void** dataBufferPtr, usize dataLen);
+
+node* _list_findNodeByIndex(list* list, i64 index);
+isize _list_optimizeIndex(list* list, i64 index);
+void _list_extractNodeFromList(list* list, node* node);
+item _list_extractItemFromNode(node* node);
+void _list_checkIndexInRange(list* list, i64 index);

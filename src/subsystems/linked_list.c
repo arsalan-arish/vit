@@ -9,25 +9,35 @@ list List(void) {
     return (list) {0};
 }
 
+typedef struct {
+    node* node;
+    struct {
+        b8 is;
+        enum {
+            _list_createNode_HEAP_FAILURE
+        } code;
+    } err;
+} _list_createNode_err_ret;
 
-node* list__createNode(u64 dataLen, void** data_buffer) {
+
+node* _list_createNode(void** dataBufferPtr, usize dataLen) {
     node* new = malloc(sizeof(node));
-    if (!new) return new;
+    *dataBufferPtr = malloc(dataLen);
 
-    *data_buffer = malloc(dataLen);
-    if (!(*data_buffer)) return new;
+    if (!new || !(*dataBufferPtr)) return null;
 
-    new->item.data = data_buffer;
+    new->item.data = *dataBufferPtr;
     new->item.dataLen = dataLen;
     return new;
 }
 
+
 item list_append(list* list, u64 dataLen) {
 
     // create node & data buffer
-    void* data_buffer;
-    node* new = list__createNode(dataLen, &data_buffer);
-    if (!new || !data_buffer) list->err.code = LIST_INDEX_OUT_OF_RANGE; return (item) {0};
+    void* dataBuffer;
+    node* new = _list_createNode(&dataBuffer, dataLen);
+    if (!new || !dataBuffer) list->err.code = list_INDEX_OUT_OF_RANGE; return (item) {0};
     new->next = null;
 
     // Attach the node
@@ -44,7 +54,7 @@ item list_append(list* list, u64 dataLen) {
     list->len++;
 
     return (item) {
-        .data = data_buffer,
+        .data = dataBuffer,
         .dataLen = dataLen
     };
 }
@@ -52,9 +62,9 @@ item list_append(list* list, u64 dataLen) {
 item list_prepend(list* list, u64 dataLen) {
     
     // create node & data buffer
-    void* data_buffer;
-    node* new = list__createNode(dataLen, &data_buffer);
-    if (!new || !data_buffer) list->err.code = LIST_INDEX_OUT_OF_RANGE; return (item) {0};
+    void* dataBuffer;
+    node* new = _list_createNode(&dataBuffer, dataLen);
+    if (!new || !dataBuffer) list->err.code = list_INDEX_OUT_OF_RANGE; return (item) {0};
     new->prev = null;
     
     // Attach the node
@@ -71,7 +81,7 @@ item list_prepend(list* list, u64 dataLen) {
     list->len++;
 
     return (item) {
-        .data = data_buffer,
+        .data = dataBuffer,
         .dataLen = dataLen
     };
 }
@@ -84,12 +94,12 @@ item list_insert(list* list, u64 dataLen, i64 index, b8 replace) {
         if (list_getInvertedIndex(list, index) == list->len) return list_append(list, dataLen);
     }
 
-    node* currentNode = list__findNodeByIndex(list, index);
+    node* currentNode = _list_findNodeByIndex(list, index);
     if (list->err.is) return (item) {0};
     
-    void* data_buffer;
-    node* new = list__createNode(dataLen, &data_buffer);
-    if (!new || !data_buffer) list->err.code = LIST_INDEX_OUT_OF_RANGE; return (item) {0};
+    void* dataBuffer;
+    node* new = _list_createNode(&dataBuffer, dataLen);
+    if (!new || !dataBuffer) list->err.code = list_INDEX_OUT_OF_RANGE; return (item) {0};
 
     // Override currentNode / push it forward depending on 'replace' parameter
     if (replace) {
@@ -122,7 +132,7 @@ item list_insert(list* list, u64 dataLen, i64 index, b8 replace) {
     list->len++;
 
     return (item) {
-        .data = data_buffer,
+        .data = dataBuffer,
         .dataLen = dataLen
     };
 }
@@ -130,22 +140,22 @@ item list_insert(list* list, u64 dataLen, i64 index, b8 replace) {
 item list_pop(list* list, b8 toReturn) {
     /* If toReturn is true, the user will have to manually call free_item() function to free the item once it has been used */
 
-    if (!list->len) list->err.code = LIST_POP_FROM_EMPTY_LIST; return (item) {0};
+    if (!list->len) list->err.code = list_POP_FROM_EMPTY_LIST; return (item) {0};
     
     // Rewire
     node* toRemove = list->last;
-    list__extractNodeFromList(list, toRemove);
+    _list_extractNodeFromList(list, toRemove);
     
     // update metadata
     list->len--;
 
     item ret;
     if (toReturn) {
-        ret = list__extractItemFromNode(toRemove);
+        ret = _list_extractItemFromNode(toRemove);
     } else {
         ret = (item) {0};
     }
-    list__free_node(toRemove);
+    _list_free_node(toRemove);
 
     return ret;
 }
@@ -153,7 +163,7 @@ item list_pop(list* list, b8 toReturn) {
 item list_popIndex(list* list, i32 index, b8 toReturn) {
     /* If toReturn is true, the user will have to manually call free_item() function to free the item once it has been used */
 
-    node* toRemove = list__findNodeByIndex(list, index);
+    node* toRemove = _list_findNodeByIndex(list, index);
     if (list->err.is) return (item) {0};
 
     // Update metadata
@@ -161,11 +171,11 @@ item list_popIndex(list* list, i32 index, b8 toReturn) {
     
     item ret;
     if (toReturn) {
-        ret = list__extractItemFromNode(toRemove);
+        ret = _list_extractItemFromNode(toRemove);
     } else {
         ret = (item) {0};
     }
-    list__free_node(toRemove);
+    _list_free_node(toRemove);
 
     return ret;
 }
@@ -179,21 +189,21 @@ void list_removeValue(list* list, void* data, u64 dataLen) {
         currentNode = currentNode->next;
     }
     // If value not found
-    if (!currentNode) list->err.code = LIST_VALUE_NOT_FOUND; return;
+    if (!currentNode) list->err.code = list_VALUE_NOT_FOUND; return;
 
-    list__extractNodeFromList(list, currentNode);
-    list__free_node(currentNode);
+    _list_extractNodeFromList(list, currentNode);
+    _list_free_node(currentNode);
 
     // Update metadata
     list->len--;
 }
 
 void list_removeIndex(list* list, i64 index) {
-    node* node = list__findNodeByIndex(list, index);
+    node* node = _list_findNodeByIndex(list, index);
     if (list->err.is) return;
 
-    list__extractNodeFromList(list, node);
-    list__free_node(node);
+    _list_extractNodeFromList(list, node);
+    _list_free_node(node);
 
     // Update metadata
     list->len--;
@@ -201,7 +211,7 @@ void list_removeIndex(list* list, i64 index) {
 
 item list_get(list* list, i64 index) {
 
-    node* currentNode = list__findNodeByIndex(list, index);
+    node* currentNode = _list_findNodeByIndex(list, index);
     if (list->err.is) return (item) {0};
     
     return currentNode->item;
@@ -222,14 +232,14 @@ isize list_getInvertedIndex(list* list, i64 index) {
     return index > 0 ? - (list->len - index) : list->len + index;
 }
 
-isize list__optimizeIndex(list* list, i64 index) {
+isize _list_optimizeIndex(list* list, i64 index) {
     // Index optimization; if index is closer to the opposite side of the list (2 sides because -ive indexing is supported), invert it so that the list is traversed from the closer side, saving compute & time.
     if ((index > 0 && index > list->len / 2) || (index < -1 && llabs(index) > list->len / 2))
         return list_getInvertedIndex(list, index);   
     return index;
 }
 
-void list__extractNodeFromList(list* list, node* node) {
+void _list_extractNodeFromList(list* list, node* node) {
     // Unwire the node
     if (!node->prev) {
         list->first = node->next;
@@ -243,7 +253,7 @@ void list__extractNodeFromList(list* list, node* node) {
     }
 }
 
-item list__extractItemFromNode(node* node) {
+item _list_extractItemFromNode(node* node) {
     // We do not need the item separately, because each node has one item only
     item ret = node->item;
     node->item = (item) {0};
@@ -255,7 +265,7 @@ void list_free_item(item item) {
     free(item.data);
 }
 
-void list__free_node(node *node) {
+void _list_free_node(node *node) {
     if (!node) return;
     list_free_item(node->item);
     free(node);
@@ -268,18 +278,18 @@ void list_free_list(list* list) {
     node* nextNode;
     for (usize i = 0; i < list->len; i++) {
         nextNode = currentNode->next;
-        list__free_node(currentNode);
+        _list_free_node(currentNode);
         currentNode = nextNode;
     }
 }
 
 
-node* list__findNodeByIndex(list* list, i64 index) {
+node* _list_findNodeByIndex(list* list, i64 index) {
 
-    list__checkIndexInRange(list, index);
+    _list_checkIndexInRange(list, index);
     if (list->err.is) return null;
 
-    index = list__optimizeIndex(list, index);
+    index = _list_optimizeIndex(list, index);
     node* currentNode;
     if (index >= 0) {
         // Traverse the list
@@ -298,11 +308,11 @@ node* list__findNodeByIndex(list* list, i64 index) {
     return currentNode;
 }
 
-void list__checkIndexInRange(list* list, i64 index) {
+void _list_checkIndexInRange(list* list, i64 index) {
     // Check if index out of range
     if (index >= 0) {
-        if (!(index < list->len)) list->err.code = LIST_INDEX_OUT_OF_RANGE; return;
+        if (!(index < list->len)) list->err.code = list_INDEX_OUT_OF_RANGE; return;
     } else {
-        if (!(llabs(index+1) < list->len)) list->err.code = LIST_INDEX_OUT_OF_RANGE; return;
+        if (!(llabs(index+1) < list->len)) list->err.code = list_INDEX_OUT_OF_RANGE; return;
     }
 }
