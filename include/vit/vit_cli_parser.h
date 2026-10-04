@@ -26,5 +26,5 @@ typedef struct {
 } parseVitCli_free_err_ret;
 
 
-parseVitCli_free_err_ret parseVitCli(i32 argc, u8* argv[]);
+parseVitCli_free_err_ret parseVitCli(int argc, char* argv[]);
 void parseVitCli_free(parseVitCli_free_err_ret res);

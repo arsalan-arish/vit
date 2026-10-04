@@ -4,7 +4,7 @@
 #include <vit/vit_cli_parser.h>
 
 
-int main(i32 argc, u8* argv[], u8* envp[]) {
+int main(int argc, char* argv[], char* envp[]) {
   
     if (argc == 1) {
         return 0;
