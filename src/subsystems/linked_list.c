@@ -9,16 +9,6 @@ list List(void) {
     return (list) {0};
 }
 
-typedef struct {
-    node* node;
-    struct {
-        b8 is;
-        enum {
-            _list_createNode_HEAP_FAILURE
-        } code;
-    } err;
-} _list_createNode_err_ret;
-
 
 node* _list_createNode(void** dataBufferPtr, usize dataLen) {
     node* new = malloc(sizeof(node));
@@ -155,7 +145,7 @@ item list_pop(list* list, b8 toReturn) {
     } else {
         ret = (item) {0};
     }
-    _list_free_node(toRemove);
+    _list_createNode_free(toRemove);
 
     return ret;
 }
@@ -175,7 +165,7 @@ item list_popIndex(list* list, i32 index, b8 toReturn) {
     } else {
         ret = (item) {0};
     }
-    _list_free_node(toRemove);
+    _list_createNode_free(toRemove);
 
     return ret;
 }
@@ -192,7 +182,7 @@ void list_removeValue(list* list, void* data, u64 dataLen) {
     if (!currentNode) list->err.code = list_VALUE_NOT_FOUND; return;
 
     _list_extractNodeFromList(list, currentNode);
-    _list_free_node(currentNode);
+    _list_createNode_free(currentNode);
 
     // Update metadata
     list->len--;
@@ -203,7 +193,7 @@ void list_removeIndex(list* list, i64 index) {
     if (list->err.is) return;
 
     _list_extractNodeFromList(list, node);
-    _list_free_node(node);
+    _list_createNode_free(node);
 
     // Update metadata
     list->len--;
@@ -260,25 +250,25 @@ item _list_extractItemFromNode(node* node) {
     return ret;
 }
 
-void list_free_item(item item) {
+void _list_createItem_free(item item) {
     if (!item.data) return; // Basically if the item struct is all 0 padded, return. Also if item.data is a nullptr, return; 
     free(item.data);
 }
 
-void _list_free_node(node *node) {
+void _list_createNode_free(node *node) {
     if (!node) return;
-    list_free_item(node->item);
+    _list_createItem_free(node->item);
     free(node);
 }
 
-void list_free_list(list* list) {
+void list_free(list* list) {
     // Free all the nodes from the heap
     if (!list || !list->len) return;
     node* currentNode = list->first;
     node* nextNode;
     for (usize i = 0; i < list->len; i++) {
         nextNode = currentNode->next;
-        _list_free_node(currentNode);
+        _list_createNode_free(currentNode);
         currentNode = nextNode;
     }
 }
