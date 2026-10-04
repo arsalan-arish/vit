@@ -24,12 +24,12 @@ typedef struct {
     struct {
         b8 is;
         enum {
-          list_INDEX_OUT_OF_RANGE = 1,
+          list_INDEX_OUT_OF_RANGE,
           list_POP_FROM_EMPTY_LIST,
           list_VALUE_NOT_FOUND,
           list_HEAP_FAILURE,
         } code;
-    } err; // if (err.is) check is convenient
+    } err;
 } list;
 
 

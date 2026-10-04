@@ -1,10 +1,7 @@
+/* Bringing Rust-like ergonomic types to C */
+#pragma once
 #include <stdint.h>
 #include <stdbool.h>
-#include <limits.h>
-#include <stddef.h>
-#include <float.h>
-
-#define null (void*) (0)
 
 typedef int8_t i8;
 typedef int16_t i16;
@@ -17,10 +14,22 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 
 typedef bool b8;
-typedef long long isize;
-typedef size_t usize;
 
 typedef float f32;
 typedef double f64;
 typedef long double f128;
 
+typedef long long isize;
+typedef size_t usize;
+
+#define null (void*) (0)
+
+enum Option {
+    Some,
+    None
+};
+
+enum Result {
+    Ok,
+    Err
+};

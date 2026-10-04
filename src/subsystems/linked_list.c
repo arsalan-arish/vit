@@ -12,9 +12,9 @@ list List(void) {
 
 node* _list_createNode(void** dataBufferPtr, usize dataLen) {
     node* new = malloc(sizeof(node));
+    if (!new) return null;
     *dataBufferPtr = malloc(dataLen);
-
-    if (!new || !(*dataBufferPtr)) return null;
+    if (!(*dataBufferPtr)) return null;
 
     new->item.data = *dataBufferPtr;
     new->item.dataLen = dataLen;
