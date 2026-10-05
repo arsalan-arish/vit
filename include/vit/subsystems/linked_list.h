@@ -1,26 +1,52 @@
-/* Doubly Linked List implementation */
+/// TODO:
+//* Clean up the codebase (rewrite from scratch)
+//* Write tests
+
+/* Doubly Linked List interface */
 #pragma once
 #include <types.h>
 
 
-// Each unit of data: item
-typedef struct {
+// Each element in the list
+typedef struct item {
     void* data;
     usize dataLen;
+    void (*free)(struct item it);
 } item; 
 
 // node
-typedef struct node {
+typedef struct _node {
     item item;
     struct node* next;
     struct node* prev;
-} node;
+    void (*free)(struct _node node);
+} _node;
 
 // head 
-typedef struct {
-    node* first;
-    node* last;
+typedef struct list {
+    /* Public */
+
+	// Attributes
     usize len;
+   
+	// Methods
+	void  (*free)            (struct list* self);
+	item  (*append)          (struct list* self, item it);
+	item  (*prepend)         (struct list* self, item it);
+	item  (*insert)          (struct list* self, item it, isize index, b8 replace);
+	item  (*pop)             (struct list* self, b8 toReturn);
+	item  (*popIndex)        (struct list* self, isize index, b8 toReturn);
+    item  (*removeIndex)     (struct list* self, isize index);
+    void  (*removeValue)     (struct list* self, item it);
+	item  (*get)             (struct list* self, isize index);
+    usize (*search)          (struct list* self, item it);
+    isize (*getInvertedIndex)(struct list* self, isize index);
+    void  (*clear)           (struct list* self);
+
+    // Static Methods
+    item (*createItem)       (const void* copyFromBuf, usize dataLen);
+
+    // Error Struct (State Machine Mechanism of Error-Signalling)
     struct {
         b8 is;
         enum {
@@ -30,63 +56,60 @@ typedef struct {
           list_HEAP_FAILURE,
         } code;
     } err;
+
+    /* Private */
+
+    // Attributes
+    _node* _first;
+    _node* _last;
+
+	// Methods
+	_node* (*_findNodeByIndex)     (struct list* self, isize index);
+    isize  (*_optimizeIndex)       (struct list* self, isize index);
+    void   (*_checkIndexInRange)   (struct list* self, isize index);
+    void   (*_extractNodeFromList) (struct list* self, _node* node); 
+
+    // Static Methods
+    _node* (*_createNode)         (item it);
+    item  (*_extractItemFromNode) (_node* node);
+
 } list;
 
 
-// TODO:
-//* Create standardized comments for all functions, and create comments for functions that can raise an error to the state machine
-//* Clean up the codebase (rewrite from scratch)
-//* Write tests
+/* Separate utility stub function */
+void _attachFuncPtrs(list* list);
 
-/* Convention (Simulating OOP in C)
-    Functions starting with List_ are constructors
-    Function with name list_free is the destructor
-    Functions are namespace prefixed with list_
-    Internal API Functions are prefixed with _list_ 
-    Functions accepting list* parameter are stateful methods
-    Functions not accepting list* are stateless utils (and static associated functions only)
+/* 
+    Error -> Sentinel based
+        null => Heap Failure
 */
+list* List(void);
 
-list List(void);
-list List_fromArray(list* list, u8* arr, usize dataLen, usize arrLen);
-
-void list_free(list* list);
-
-item list_append(list* list, usize dataLen);
-item list_prepend(list* list, usize dataLen);
-item list_insert(list* list, usize dataLen, i64 index, b8 replace);
-
-item list_pop(list* list, b8 toReturn);
-item list_popIndex(list* list, i32 index, b8 toReturn);
-void list_removeValue(list* list, void* data, usize dataLen);
-void list_removeIndex(list* list, i64 index); 
-
-item list_get(list* list, i64 index);
-usize list_search(list* list, void* data, usize dataLen);
-isize list_getInvertedIndex(list* list, i64 index);
-
-/*
-    _list_createNode: Internal stateless function 
-
-    Doc:
-        Constructs the 'node' type on the heap, and returns a pointer to it
-
-    @param dataBufferPtr => An arbitrary pointer to a 'pointer location', where the address of the buffer will be written
-    @param dataLen     => The size of the databuffer
-    @return node*
-
-    Error -> return sentinel-based:
-        null => Heap failure (the OS did not give the requested memory)
+/* 
+    Error -> Sentinel based
+        null => Heap Failure
 */
-node* _list_createNode(void** dataBufferPtr, usize dataLen);
-item _list_createItem(void** dataBufferPtr, usize dataLen);
+list* List_fromArray(const void* arr, usize dataLen, usize arrLen);
 
-void _list_createNode_free(node* node);
-void _list_createItem_free(item item); 
+static void free_list(list* self);
+static item append(list* self, item it);
+static item prepend(list* self, item it);
+static item insert(list* self, item it, isize index, b8 replace);
+static item pop(list* self, b8 toReturn);
+static item popIndex(list* self, isize index, b8 toReturn);
+static item removeIndex(list* self, isize index);
+static void removeValue(list* self, item it);
+static item get(list* self, isize index);
+static usize search(list* self, item it);
+static isize getInvertedIndex(list* self, isize index);
+static void clear(list* self);
 
-void _list_extractNodeFromList(list* list, node* node);
-item _list_extractItemFromNode(node* node);
+static item createItem(const void* copyFromBuf, usize dataLen);
 
-node* _list_findNodeByIndex(list* list, i64 index);
-isize _list_optimizeIndex(list* list, i64 index);
-void _list_checkIndexInRange(list* list, i64 index);
+static _node* _findNodeByIndex(list* self, isize index);
+static isize _optimizeIndex(list* self, isize index);
+static void  _checkIndexInRange(list* self, isize index);
+static void  _extractNodeFromList(list* self, _node* node);
+
+static _node* _createNode(item it);
+static item  _extractItemFromNode(_node* node);

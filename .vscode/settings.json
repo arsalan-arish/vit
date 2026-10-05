@@ -5,4 +5,5 @@
     "cmake.modifyLists.addNewSourceFiles": "yes",
     "cmake.modifyLists.removeDeletedSourceFiles": "yes",
     "cmake.useCMakePresets": "always",
+    "cmake.configureOnOpen": false
 }
