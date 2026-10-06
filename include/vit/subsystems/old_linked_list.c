@@ -152,29 +152,19 @@ static usize search(list* self, void* data, usize dataLen);
 */
 static isize getInvertedIndex(list* self, i64 index);
 
-/*
-    Doc:
-        Constructs the 'node' type on the heap, and returns a pointer to it
 
-    @param dataBufferPtr => An arbitrary pointer to a 'pointer location', where the address of the buffer will be written
-    @param dataLen       => The size of the databuffer
-    @return node*        => Pointer to 'node' type
-
-    Error -> return sentinel-based:
-        null => Heap failure (the OS did not give the requested memory)
-*/
-static _node* _createNode(void** dataBufferPtr, usize dataLen);
-static item _createItem(void** dataBufferPtr, usize dataLen);
+static _node* _createnode(void** databufferptr, usize datalen);
+static item _createitem(void** databufferptr, usize datalen);
 
 /*
-    Doc:
-        Free the memory allocated for a node and its associated data buffer.
+    doc:
+        free the memory allocated for a node and its associated data buffer.
 
-    Behavior:
-        - Frees node->item.data (if non-NULL) and then frees the node itself.
-        - Safe to call only for nodes that were allocated by _createNode.
+    behavior:
+        - frees node->item.data (if non-null) and then frees the node itself.
+        - safe to call only for nodes that were allocated by _createnode.
 
-    @param node => Pointer to the node to free. If NULL the function is a no-op.
+    @param node => pointer to the node to free. if null the function is a no-op.
 */
 static void _createNode_free(_node* node);
 
@@ -256,7 +246,7 @@ static isize _optimizeIndex(list* self, i64 index);
     @param self  => The list against which to check the index.
     @param index => The index to validate.
 */
-static void _checkIndexInRange(list* self, i64 index);
+static void list_checkIndexInRange(list* self, i64 index);
 
 // Implementation
 #include <stdlib.h>
@@ -289,7 +279,7 @@ item list_append(list* self, u64 dataLen) {
     void* dataBuffer;
     _node* new = _list_createNode(&dataBuffer, dataLen);
     if (!new || !dataBuffer) self->err.code = list_INDEX_OUT_OF_RANGE; return (item) {0};
-    new->next = null;
+    new->next = null;;
 
     // Attach the node
     if (!self->len) {
@@ -480,7 +470,7 @@ u64 list_search(list* self, void* data, u64 dataLen) {
 }
 
 isize list_getInvertedIndex(list* self, i64 index) {
-    return index > 0 ? - (self->len - index) : self->len + index;
+    return index > 0 ? -(self->len - index) : self->len + index;
 }
 
 isize _list_optimizeIndex(list* self, i64 index) {
@@ -529,7 +519,7 @@ void list_free(list* self) {
     _node* nextNode;
     for (usize i = 0; i < self->len; i++) {
         nextNode = currentNode->next;
-        _list_createNode_free(currentNode);
+        currentNode->free(currentNode);
         currentNode = nextNode;
     }
 }

@@ -6,3 +6,6 @@
   - Internal API Functions are prefixed with _  
   - Functions accepting self parameter are stateful methods  
   - Functions not accepting self parameter are stateless utils (and static associated functions only)  
+  - In all methods accepting self param, if self param is null they do nothing just return
+
+The err struct in Result enum based type must always contain an error code

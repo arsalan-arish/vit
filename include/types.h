@@ -24,11 +24,6 @@ typedef size_t usize;
 
 #define null (void*) (0)
 
-enum Option {
-    Some,
-    None
-};
-
 enum Result {
     Ok,
     Err

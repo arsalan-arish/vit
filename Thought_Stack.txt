@@ -1,0 +1,4 @@
+Clean the codebase
+Solve TODOs
+Implement insert, then prepend and append (delegating these to insert)
+Implement findNodeByIndex, UnwireNode, WireNode
