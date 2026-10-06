@@ -16,7 +16,7 @@ typedef struct {
 
 typedef struct {
     VIT_COMMAND command;
-    u8** args; //TODO: Change this and below to an enum-like representation
+    u8** args;
     u8** flags;
 } parseVitCli_ret;
 

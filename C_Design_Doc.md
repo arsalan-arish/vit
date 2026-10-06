@@ -1,6 +1,6 @@
 # Interfacing in C
 
-## Convention (Simulating OOP in C)
+## Convention for Simulating OOP in C
 
 - Functions starting with \<type\> (Capital case) are constructors  
 - All other functions are stored as function pointers inside the \<type\> struct  
@@ -17,5 +17,7 @@
 - To return multiple types, use a \<func\>_ret struct  
 - To return a freeable resource, suffix the return type with _free, and provide a function pointer to the freeing function in the type.  
 - To return possible error information:  
-  - Use a sentinel (outside the range of normal values)  
-  - use a \<func\>_err struct, and wrap both ret and err structs in a new struct named \<func\>_result. This also contains a field of Result enum indicating status. The err struct in Result enum based type must contain atleast 1 err code (as enum)  
+  - Use a sentinel (outside the range of normal values) like null for ptrs
+  - If not sentinel, use a \<func\>_err struct, and wrap both ret and err structs in a new struct named \<func\>_result. This also contains a field of Result enum indicating status. The err struct in Result enum based type must contain atleast 1 err code (as enum)  
+  - If a function returns an error that originally comes from somewhere else (i.e propagated from), must mention it
+  - Do not do null validation of the data that comes in as parameter to a function. If the API defines null as a valid input value to the parameter, only then check it. Else make it clear in the API contract that the function does not accept a null value. And don't verify it.  

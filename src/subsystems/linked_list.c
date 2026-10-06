@@ -1,3 +1,4 @@
+//TODO: Validate the interface with the last C Design Doc point of null validation
 #include <stdlib.h>
 #include <string.h>
 #include <vit/subsystems/linked_list.h>
@@ -54,8 +55,24 @@ List_fromArray_result List_fromArray(const void* arr, usize dataLen, usize arrLe
     return toReturn;
 
     for (usize i = 0; i < arrLen; i++) {
-        //TODO: Make sure that if append and createItem functions raise error, handle it here
-        self->append(self, self->createItem(arr + (i * dataLen), dataLen));
+
+        item* it = self->createItem(arr + (i * dataLen), dataLen);
+        if (!it) {
+            toReturn.status = Err;
+            toReturn.data.err.code = List_fromArray_HEAP_FAIL;
+            return toReturn;
+        }
+
+        self->append(self, it);
+        if (self->err.is) {
+            switch (self->err.code) {
+            case list_HEAP_FAILURE:
+                toReturn.status = Err;
+                toReturn.data.err.code = List_fromArray_HEAP_FAIL;
+                return toReturn;
+            }
+            // Ignore other cases as they are not possible
+        }
     }
 
     toReturn.status = Ok;

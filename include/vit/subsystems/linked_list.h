@@ -1,7 +1,3 @@
-/// TODO:
-//* Clean up the codebase (rewrite from scratch)
-//* Write tests
-
 /* Doubly Linked List interface */
 #pragma once
 #include <types.h>
@@ -95,16 +91,13 @@ list* List(void);
 
     Error -> Result enum based
         err struct is self-descriptive
-
-    //TODO: Is Data Validation even necessary here??? Should you do input validation in all functions or should you leave it to Undefined Behavior
-    // Atleast validate null?? From client only, or also the operating system? 
 */
 typedef struct {
     enum {
       List_fromArray_ARR_IS_NULL,
       List_fromArray_DATALEN_IS_ZERO,
       List_fromArray_ARRLEN_IS_ZERO,
-      List_fromArray_HEAP_FAIL // -> Propagated from List() constructor function
+      List_fromArray_HEAP_FAIL // -> Propagated from List() constructor function, or createNode, or append functions
     } code;
 } List_fromArray_err;
 
