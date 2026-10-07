@@ -177,7 +177,7 @@ static _node* _findNodeByIndex(list* self, isize index) {
 
 }
 
-static void _wireNode(list* self, _node* node) {
+static void _wireNode(list* self, _node* node, isize index) {
 
 }
 

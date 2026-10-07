@@ -3,3 +3,5 @@ Clean the codebase
 Solve TODOs
 Implement insert, then prepend and append (delegating these to insert)
 Implement findNodeByIndex, UnwireNode, WireNode
+Should library functions that have to deal with an index, deal with it by calling the verify function or is it the job of the caller?? 
+How should errors be translated or what, if the call stack of functions return errors in different representations??

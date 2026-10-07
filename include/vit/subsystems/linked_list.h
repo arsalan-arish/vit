@@ -33,9 +33,9 @@ typedef struct list {
 	void  (*prepend)         (struct list* self, item* it);
     void  (*removeIndex)     (struct list* self, isize index);
     void  (*removeValue)     (struct list* self, item* it);
-	item*  (*popIndex)        (struct list* self, isize index, b8 toReturn);
-	item*  (*pop)             (struct list* self, b8 toReturn);
-	item*  (*get)             (struct list* self, isize index);
+	item* (*popIndex)        (struct list* self, isize index, b8 toReturn);
+	item* (*pop)             (struct list* self, b8 toReturn);
+	item* (*get)             (struct list* self, isize index);
     usize (*search)          (struct list* self, item* it);
     isize (*getInvertedIndex)(struct list* self, isize index);
     void  (*clear)           (struct list* self);
@@ -61,11 +61,11 @@ typedef struct list {
     _node* _last;
 
 	// Methods
-	_node* (*_findNodeByIndex)     (struct list* self, isize index);
-    void   (*_wireNode)    (struct list* self, _node* node);
-    void   (*_unwireNode)  (struct list* self, _node* node);
-    isize  (*_optimizeIndex)       (struct list* self, isize index);
-    void   (*_checkIndexInRange)   (struct list* self, isize index);
+	_node* (*_findNodeByIndex)  (struct list* self, isize index);
+    void   (*_wireNode)         (struct list* self, _node* node, isize index);
+    void   (*_unwireNode)       (struct list* self, _node* node);
+    isize  (*_optimizeIndex)    (struct list* self, isize index);
+    void   (*_checkIndexInRange)(struct list* self, isize index);
 
     // Static Methods
     _node* (*_createNode)         (item* it);
@@ -73,6 +73,7 @@ typedef struct list {
 
 } list;
 
+//! ===========================================================================================
 
 /* 
     Doc:
@@ -81,6 +82,8 @@ typedef struct list {
         null => Heap Failure
 */
 list* List(void);
+
+//! ===========================================================================================
 
 /* 
     Doc:
@@ -115,11 +118,15 @@ typedef struct {
 
 List_fromArray_result List_fromArray(const void* arr, usize dataLen, usize arrLen);
 
+//! ===========================================================================================
+
 /*
     Doc:
         Destructor
 */
 static void free_list(list* self);
+
+//! ===========================================================================================
 
 /*
     Doc:
@@ -136,6 +143,8 @@ static void free_list(list* self);
 */
 static void insert(list* self, item* it, isize index, b8 replace);
 
+//! ===========================================================================================
+
 /*
     Doc:
         Appends the item in the list
@@ -145,6 +154,8 @@ static void insert(list* self, item* it, isize index, b8 replace);
         list_HEAP_FAILURE -> Propagated from _createNode
 */
 static void append(list* self, item* it);
+
+//! ===========================================================================================
 
 /*
     Doc:
@@ -156,14 +167,24 @@ static void append(list* self, item* it);
 */
 static void prepend(list* self, item* it);
 
+//! ===========================================================================================
+
 static void removeIndex(list* self, isize index);
+//! ===========================================================================================
 static void removeValue(list* self, item* it);
+//! ===========================================================================================
 static item* popIndex(list* self, isize index, b8 toReturn);
+//! ===========================================================================================
 static item* pop(list* self, b8 toReturn);
+//! ===========================================================================================
 static item* get(list* self, isize index);
+//! ===========================================================================================
 static usize search(list* self, item* it);
+//! ===========================================================================================
 static isize getInvertedIndex(list* self, isize index);
+//! ===========================================================================================
 static void clear(list* self);
+//! ===========================================================================================
 
 /* Separate util; Not a method */
 static void _createItem_free(item* it);
@@ -179,10 +200,23 @@ static void _createItem_free(item* it);
 */
 static item* createItem(const void* src, usize dataLen);
 
+//! ===========================================================================================
+/*
+    Doc:
+        Traverses through the list to reach the node, and returns a pointer to it
+    @param index => index of node to return. MUST BE VALID ALREADY
+
+    Error -> state machine 
+        
+*/
 static _node* _findNodeByIndex(list* self, isize index);
-static void _wireNode(list* self, _node* node);
+//! ===========================================================================================
+static void _wireNode(list* self, _node* node, isize index);
+//! ===========================================================================================
 static void _unwireNode(list* self, _node* node);
+//! ===========================================================================================
 static isize _optimizeIndex(list* self, isize index);
+//! ===========================================================================================
 
 /*
     Doc:
@@ -194,6 +228,7 @@ static isize _optimizeIndex(list* self, isize index);
 */
 static void _checkIndexInRange(list* self, isize index);
 
+//! ===========================================================================================
 
 /* Separate util; not a method */
 static void _createNode_free(_node* node);
@@ -208,4 +243,6 @@ static void _createNode_free(_node* node);
 */
 static _node* _createNode(item* it);
 
+//! ===========================================================================================
 static item* _unwireItemFromNode(_node* node);
+//! ===========================================================================================
