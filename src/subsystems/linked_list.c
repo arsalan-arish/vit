@@ -1,5 +1,6 @@
 /* Doubly Linked List implementation */
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <vit/subsystems/linked_list.h>
 #include <types.h>
@@ -12,6 +13,7 @@ list* List(void) {
     self->len = 0;
     self->_first = null;
     self->_last = null;
+    self->err.is = false;
 
     // Attach the function ptrs
     self->free = free_list;
@@ -24,7 +26,7 @@ list* List(void) {
     self->search = search;
     self->getInvertedIndex = getInvertedIndex;
     self->clear = clear;
-
+    self->pprint = pprint;
     self->createItem = createItem;
 
     self->_findNodeByIndex = _findNodeByIndex;
@@ -40,7 +42,7 @@ list* List(void) {
     return self;
 }
 
-list* List_fromArray(const void* arr, usize dataLen, usize arrLen) {
+list* List_fromArray(const u8* arr, usize dataLen, usize arrLen) {
     
     list* self = List();
     if (!self) return null;
@@ -123,17 +125,69 @@ static item* removeIndex(list* self, isize index, b8 toReturn) {
 
     return it;
 }
-static item* removeValue(list* self, item* it, b8 toReturn) {
-    
+static void removeValue(list* self, item* it) {
+
+    isize index = self->search(self, it);
+    if (index == -1) {
+        self->err.is = true;
+        self->err.code = list_VALUE_NOT_FOUND;
+        return;
+    }
+    _node* node = self->_findNodeByIndex(self, index);
+    // Unwire node
+    self->_unwireNode(self, node);
+    // Free the node
+    node->free(node);
 }
-static item* get(list* self, isize index);
-static usize search(list* self, item* it);
+
+static const item* get(list* self, isize index) {
+    // Validate index
+    self->_checkIndexInRange(self, index);
+    if (self->err.is) return null;
+    // Locate node
+    _node* node = self->_findNodeByIndex(self, index);
+    // Return the item pointer
+    return node->item;
+}
+
+static isize search(list* self, item* it) {
+    // O(n) Linear Search
+    _node* currentNode = self->_first;
+    for (usize i = 0; i < self->len; i++) {
+        if (currentNode->item->dataLen != it->dataLen) {
+            continue;
+        }
+        if (memcmp(currentNode->item->data, it->data, it->dataLen) == 0) {
+            return i;
+        }
+        currentNode = currentNode->next;
+    }
+    return -1;
+}
 
 static isize getInvertedIndex(list* self, isize index) {
     return index > 0 ? -(self->len - index) : self->len + index;
 }
 
-static void clear(list* self);
+static void clear(list* self) {
+    // Traverse through list and free all nodes (copied from free_list function)
+    _node *currentNode = self->_first;
+    _node* nextNode;
+    for (usize i = 0; i < self->len; i++) {
+        nextNode = currentNode->next;
+        currentNode->free(currentNode);
+        currentNode = nextNode;
+    }
+    // Reset attributes
+    self->len = 0;
+    self->_first = null;
+    self->_last = null;
+    self->err.is = false;
+}
+
+static void pprint(list* self) {
+    printf("\nLen => %zu\n", self->len);
+}
 
 static void _createItem_free(item* it) {
     free(it->data);

@@ -1,5 +1,7 @@
 Write tests
-Verify all functions for subtle bugs
 Clean the codebase
-Implement remaining functions
+
+Verify all functions for subtle bugs
 Separate private vs public interface
+Use const aggressively to make code safer
+check for halfway initialized resources left in earlier return statements

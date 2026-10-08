@@ -21,3 +21,8 @@
   - If not sentinel, use a \<func\>_err struct, and wrap both ret and err structs in a new struct named \<func\>_result. This also contains a field of Result enum indicating status. The err struct in Result enum based type must contain atleast 1 err code (as enum)  
   - If a function returns an error that originally comes from somewhere else (i.e propagated from), must mention it
   - Do not do null validation of the data that comes in as parameter to a function. If the API defines null as a valid input value to the parameter, only then check it. Else make it clear in the API contract that the function does not accept a null value. And don't verify it.  
+
+## The point of 'unsigned' in C
+
+- Some integer operations like division, bit shifts, comparisons, and type casting (width changing) are done with different CPU instructions based on whether it is signed or unsigned
+- So generally, when representing raw arbitrary byte data, always use unsigned ints for normal behavior. Signed ones have exclusive behavior with these operations

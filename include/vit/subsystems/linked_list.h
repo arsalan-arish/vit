@@ -32,11 +32,12 @@ typedef struct list {
 	void  (*append)          (struct list* self, item* it);
 	void  (*prepend)         (struct list* self, item* it);
     item* (*removeIndex)     (struct list* self, isize index, b8 toReturn);
-    item* (*removeValue)     (struct list* self, item* it, b8 toReturn);
-	item* (*get)             (struct list* self, isize index);
-    usize (*search)          (struct list* self, item* it);
+    void (*removeValue)     (struct list* self, item* it);
+	const item* (*get)             (struct list* self, isize index);
+    isize (*search)          (struct list* self, item* it);
     isize (*getInvertedIndex)(struct list* self, isize index);
     void  (*clear)           (struct list* self);
+    void  (*pprint)          (struct list* self);
 
     // Static Methods
     item* (*createItem)       (const void* src, usize dataLen);
@@ -96,7 +97,7 @@ list* List(void);
                                 _createNode() as null
                                 append() as list_HEAP_FAILURE State Machine
 */
-list* List_fromArray(const void* arr, usize dataLen, usize arrLen);
+list* List_fromArray(const u8* arr, usize dataLen, usize arrLen);
 
 //! ===========================================================================================
 
@@ -162,21 +163,38 @@ static item* removeIndex(list* self, isize index, b8 toReturn);
 
 //! ===========================================================================================
 
-static item* removeValue(list* self, item* it, b8 toReturn);
+/*
+    Doc:
+        Searches the list for value equal to 'it', and then removes it
 
-//! ===========================================================================================
-
-static item* get(list* self, isize index);
+    Error -> State Machine
+        list_VALUE_NOT_FOUND
+*/
+static void removeValue(list* self, item* it);
 
 //! ===========================================================================================
 
 /*
     Doc:
-        
+        Returns an immutable pointer to item at index inside list.
+    
+    Error -> State Machine
+        list_INDEX_OUT_OF_RANGE => Propagated from _checkIndexInRange()
 */
-static usize search(list* self, item* it);
+static const item* get(list* self, isize index);
 
 //! ===========================================================================================
+
+/*
+    Doc:
+        Performs a Linear Search, by comparing the data byte-to-byte of list's items to 'it'
+        Returns +ive index of result, or -1 if not found
+
+*/
+static isize search(list* self, item* it);
+
+//! ===========================================================================================
+
 /*
     Doc:
         Returns the index with the opposite sign, that references the same node that the given index does.
@@ -191,6 +209,14 @@ static isize getInvertedIndex(list* self, isize index);
         Resets the list to clean state, all nodes are destroyed and metadata updated
 */
 static void clear(list* self);
+
+//! ===========================================================================================
+
+/*
+    Doc:
+        A function that pretty prints the list to the stdout
+*/
+static void pprint(list* self);
 
 //! ===========================================================================================
 
@@ -294,3 +320,4 @@ static _node* _createNode(item* it);
 */
 static item* _unwireItemFromNode(_node* node);
 //! ===========================================================================================
+
