@@ -20,8 +20,6 @@ list* List(void) {
     self->prepend = prepend;
     self->removeIndex = removeIndex;
     self->removeValue = removeValue;
-    self->pop = pop;
-    self->popIndex = popIndex;
     self->get = get;
     self->search = search;
     self->getInvertedIndex = getInvertedIndex;
@@ -105,10 +103,29 @@ static void prepend(list* self, item* it) {
     self->insert(self, it, 0, false);
 }
 
-static void removeIndex(list* self, isize index);
-static void removeValue(list* self, item* it);
-static item* popIndex(list* self, isize index, b8 toReturn);
-static item* pop(list* self, b8 toReturn);
+static item* removeIndex(list* self, isize index, b8 toReturn) {
+    // Validate index
+    self->_checkIndexInRange(self, index);
+    if (self->err.is) return null;
+    // Locate node
+    _node* toRemove = self->_findNodeByIndex(self, index);
+    // Unwire it
+    self->_unwireNode(self, toRemove);
+    // Extract item if needed
+    item* it;
+    if (toReturn) {
+        it = self->_unwireItemFromNode(toRemove);
+    } else {
+        it = null;
+    }
+    // Free the node
+    toRemove->free(toRemove);
+
+    return it;
+}
+static item* removeValue(list* self, item* it, b8 toReturn) {
+    
+}
 static item* get(list* self, isize index);
 static usize search(list* self, item* it);
 

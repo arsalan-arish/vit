@@ -2,3 +2,4 @@ Write tests
 Verify all functions for subtle bugs
 Clean the codebase
 Implement remaining functions
+Separate private vs public interface

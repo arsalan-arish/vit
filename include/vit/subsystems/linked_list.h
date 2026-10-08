@@ -31,10 +31,8 @@ typedef struct list {
 	void  (*insert)          (struct list* self, item* it, isize index, b8 replace);
 	void  (*append)          (struct list* self, item* it);
 	void  (*prepend)         (struct list* self, item* it);
-    void  (*removeIndex)     (struct list* self, isize index);
-    void  (*removeValue)     (struct list* self, item* it);
-	item* (*popIndex)        (struct list* self, isize index, b8 toReturn);
-	item* (*pop)             (struct list* self, b8 toReturn);
+    item* (*removeIndex)     (struct list* self, isize index, b8 toReturn);
+    item* (*removeValue)     (struct list* self, item* it, b8 toReturn);
 	item* (*get)             (struct list* self, isize index);
     usize (*search)          (struct list* self, item* it);
     isize (*getInvertedIndex)(struct list* self, isize index);
@@ -151,19 +149,20 @@ static void prepend(list* self, item* it);
 
 //! ===========================================================================================
 
-static void removeIndex(list* self, isize index);
+/*
+    Doc:
+        Removes the value at index
+    @param index => index to remove from
+    @param toReturn => if true, the item* will be returned, else, null will be returned
+
+    Error -> State Machine
+        list_INDEX_OUT_OF_RANGE
+*/
+static item* removeIndex(list* self, isize index, b8 toReturn);
 
 //! ===========================================================================================
 
-static void removeValue(list* self, item* it);
-
-//! ===========================================================================================
-
-static item* popIndex(list* self, isize index, b8 toReturn);
-
-//! ===========================================================================================
-
-static item* pop(list* self, b8 toReturn);
+static item* removeValue(list* self, item* it, b8 toReturn);
 
 //! ===========================================================================================
 
@@ -171,6 +170,10 @@ static item* get(list* self, isize index);
 
 //! ===========================================================================================
 
+/*
+    Doc:
+        
+*/
 static usize search(list* self, item* it);
 
 //! ===========================================================================================
@@ -213,10 +216,9 @@ static item* createItem(const void* src, usize dataLen);
 /*
     Doc:
         Traverses through the list to reach the node, and returns a pointer to it
-    @param index => index of node to return. MUST BE VALID ALREADY (<= len or corresponding -ive)
+        If return is null, The index is equal to self->len. (Safe to insert at this index, it will be an append)
 
-    Error -> Sentinel based
-        null => The index is equal to self->len. (Safe to insert at this index, it will be an append)
+    @param index => index of node to return. MUST BE VALID ALREADY (<= len or corresponding -ive)
 */
 static _node* _findNodeByIndex(list* self, isize index);
 
@@ -247,6 +249,7 @@ static void _unwireNode(list* self, _node* node);
     Doc:
         Returns an optimized index for traversing
         Index optimization; if index is closer to the opposite side of the list (2 sides because -ive indexing is supported), invert it so that the list is traversed from the closer side, saving compute & time.
+        Does NOT validate the index
     @param index => The index to be optimized
 */
 static isize _optimizeIndex(list* self, isize index);
