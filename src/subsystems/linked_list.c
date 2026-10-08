@@ -1,4 +1,4 @@
-//TODO: Validate the interface with the last C Design Doc point of null validation
+/* Doubly Linked List implementation */
 #include <stdlib.h>
 #include <string.h>
 #include <vit/subsystems/linked_list.h>
@@ -42,46 +42,23 @@ list* List(void) {
     return self;
 }
 
-List_fromArray_result List_fromArray(const void* arr, usize dataLen, usize arrLen) {
+list* List_fromArray(const void* arr, usize dataLen, usize arrLen) {
     
-    List_fromArray_result toReturn;    
     list* self = List();
-
-    toReturn.status = Err;
-    if (!self)         toReturn.data.err.code = List_fromArray_HEAP_FAIL;
-    else if (!arr)     toReturn.data.err.code = List_fromArray_ARR_IS_NULL;
-    else if (!dataLen) toReturn.data.err.code = List_fromArray_DATALEN_IS_ZERO;
-    else if (!arrLen)  toReturn.data.err.code = List_fromArray_ARRLEN_IS_ZERO;
-    return toReturn;
+    if (!self) return null;
 
     for (usize i = 0; i < arrLen; i++) {
-
         item* it = self->createItem(arr + (i * dataLen), dataLen);
-        if (!it) {
-            toReturn.status = Err;
-            toReturn.data.err.code = List_fromArray_HEAP_FAIL;
-            return toReturn;
-        }
+        if (!it) return null;
 
         self->append(self, it);
-        if (self->err.is) {
-            switch (self->err.code) {
-            case list_HEAP_FAILURE:
-                toReturn.status = Err;
-                toReturn.data.err.code = List_fromArray_HEAP_FAIL;
-                return toReturn;
-            }
-            // Ignore other cases as they are not possible
-        }
+        if (self->err.is) return null;
     }
 
-    toReturn.status = Ok;
-    toReturn.data.ret.list = self;
-    return toReturn;
+    return self;
 }
 
 static void free_list(list* self) {
-    if (!self) return;
     if (!self->len) free(self); return;
 
     _node *currentNode = self->_first;
@@ -91,11 +68,11 @@ static void free_list(list* self) {
         currentNode->free(currentNode);
         currentNode = nextNode;
     }
+
     free(self);
 }
 
 static void insert(list* self, item* it, isize index, b8 replace) {
-    if (!self) return;
 
     // Validate index
     self->_checkIndexInRange(self, index);
@@ -110,55 +87,43 @@ static void insert(list* self, item* it, isize index, b8 replace) {
         return;
     }
 
-    /*
-        if (replace) {
-            if !toAppend
-                findExistingNode at index
-                unwire it
-                free it
-            wireNewNode at index
-        } else {
-            wireNewNode at index
-        }
-    */
-
-    // update metadata
-    self->len++;
+    // Attach it
+    if (replace && !toAppend) {
+        _node* old = self->_findNodeByIndex(self, index);
+        self->_unwireNode(self, old);
+        old->free(old);
+    }
+    self->_wireNode(self, new, index);
 }
 
-//TODO: Design problem. I think '_node' has alot of its own logic hence a separate object shall be created for it
 static void append(list* self, item* it) {
-    if (!self) return; 
+    self->insert(self, it, self->len, false);
 
-    // Create a node
-    _node* node = self->_createNode(it);
-    if (!node)  {
-        self->err.is = true;
-        self->err.code = list_HEAP_FAILURE; 
-        return;
-    }
-
-    // Attach node
-
-
-    // update metadata
-    self->len++;
 }
 
 static void prepend(list* self, item* it) {
-
+    self->insert(self, it, 0, false);
 }
 
+static void removeIndex(list* self, isize index);
+static void removeValue(list* self, item* it);
+static item* popIndex(list* self, isize index, b8 toReturn);
+static item* pop(list* self, b8 toReturn);
+static item* get(list* self, isize index);
+static usize search(list* self, item* it);
+
+static isize getInvertedIndex(list* self, isize index) {
+    return index > 0 ? -(self->len - index) : self->len + index;
+}
+
+static void clear(list* self);
 
 static void _createItem_free(item* it) {
-    if (!it) return;
-
     free(it->data);
     free(it);
 }
 
 static item* createItem(const void* src, usize dataLen) {
-    if (!src || !dataLen) return null;
 
     item* new = malloc(sizeof(item));
     if (!new) return null;
@@ -174,19 +139,83 @@ static item* createItem(const void* src, usize dataLen) {
 
 
 static _node* _findNodeByIndex(list* self, isize index) {
+    index = self->_optimizeIndex(self, index);
 
+    _node* currentNode;
+    if (index >= 0) {
+        currentNode = self->_first;
+        for (usize i = 0; i < index; i++) {
+            currentNode = currentNode->next;
+        }
+    } else {
+        currentNode = self->_last;
+        for (isize i = -1; i > index; i--) {
+            currentNode = currentNode->prev;
+        }
+    }
+
+    return currentNode;
 }
 
 static void _wireNode(list* self, _node* node, isize index) {
+    if (index < 0) index = self->getInvertedIndex(self, index); // keep things +ive & simple
+    
+    if (index == 0) {
+        if (!self->len) {
+            self->_first = node;
+            self->_last = node;
+            node->next = null;
+            node->prev = null;
+        } else {
+            node->next = self->_first;
+            node->prev = null;
+            self->_first->prev = node;
+            self->_first = node;
+        }
+        
+    } else if (index == self->len) {
+        node->next = null;
+        node->prev = self->_last;
+        self->_last->next = node;
+        self->_last = node;
 
+    } else {
+        _node* existingNode = self->_findNodeByIndex(self, index);
+        node->prev = existingNode->prev;
+        node->next = existingNode;
+        existingNode->prev->next = node;
+        existingNode->prev = node;
+    }
+    
+    self->len++;
 }
 
 static void _unwireNode(list* self, _node* node) {
+    // Unwire the node
+    if (!node->prev) {
+        self->_first = node->next;
+    } else {
+        node->prev->next = node->next;
+    }
+    if (!node->next) {
+        self->_last = node->prev;
+    } else {
+        node->next->prev = node->prev;
+    }
 
+    self->len--;
 }
 
 static isize _optimizeIndex(list* self, isize index) {
-
+    if 
+    (
+        (index > 0 && index > self->len / 2)  ||
+        (index < -1 && llabs(index + 1) > self->len / 2)
+    )
+    {
+        return self->getInvertedIndex(self, index);
+    }    
+    return index;
 }
 
 static void _checkIndexInRange(list* self, isize index) {
@@ -198,8 +227,8 @@ static void _checkIndexInRange(list* self, isize index) {
 }
 
 static void _createNode_free(_node* node) {
-    if (!node) return;
-    node->item->free(node->item);
+    // Below null check is an exception from normal behavior. Because in the internal API Design, an item can be legitimately null (technique to 'take' the item's ownership so a node does not free it)
+    if (node->item != null) node->item->free(node->item); 
     free(node);
 }
 
@@ -215,3 +244,9 @@ static _node* _createNode(item* it) {
     return new;
 }
 
+
+static item* _unwireItemFromNode(_node* node) {
+    item* toReturn = node->item;
+    node->item = null;
+    return toReturn;
+}
