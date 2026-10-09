@@ -20,6 +20,7 @@ typedef struct _node {
     void (*free)(struct _node* node);
 } _node;
 
+// clang-format off
 // head 
 typedef struct list {
     /* Public */
@@ -72,6 +73,7 @@ typedef struct list {
     item*  (*_unwireItemFromNode) (_node* node);
 
 } list;
+// clang-format on
 
 //! ===========================================================================================
 
