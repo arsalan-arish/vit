@@ -1,6 +1,6 @@
 {
     "clangd.arguments": [
-        "--compile-commands-dir=out/build/main"
+        "--compile-commands-dir=build/main"
     ],
     "cmake.modifyLists.addNewSourceFiles": "yes",
     "cmake.modifyLists.removeDeletedSourceFiles": "yes",

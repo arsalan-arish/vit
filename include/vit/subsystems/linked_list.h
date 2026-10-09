@@ -7,7 +7,8 @@
 // Make sure to manually call the free method on item, if the item is not 'wired/attached' to the list
 typedef struct item {
     void* data;
-    usize dataLen;
+    usize size;
+    enum Type type;
     void (*free)(struct item* it);
 } item; 
 
@@ -40,7 +41,7 @@ typedef struct list {
     void  (*pprint)          (struct list* self);
 
     // Static Methods
-    item* (*createItem)       (const void* src, usize dataLen);
+    item* (*createItem)       (const void* src, usize size, enum Type type);
 
     // Error Struct (State Machine Mechanism of Error-Signalling)
     struct {
@@ -88,7 +89,7 @@ list* List(void);
     Doc:
         Constructor
     @param arr => pointer to the array
-    @param dataLen => size of each item
+    @param size => size of each item
     @param arrLen => no. of items in array
 
     Error -> sentinel-based
@@ -97,7 +98,7 @@ list* List(void);
                                 _createNode() as null
                                 append() as list_HEAP_FAILURE State Machine
 */
-list* List_fromArray(const u8* arr, usize dataLen, usize arrLen);
+list* List_fromArray(const u8* arr, usize size, usize arrLen);
 
 //! ===========================================================================================
 
@@ -231,12 +232,12 @@ static void _createItem_free(item* it);
         Constructs the 'item' on the heap, and returns a pointer to it
 
     @param src => pointer to the data source (to copy into item.data)
-    @param dataLen => size of data in bytes
+    @param size => size of data in bytes
 
     Error -> sentinel based:
         null => Heap Failure
 */
-static item* createItem(const void* src, usize dataLen);
+static item* createItem(const void* src, usize size, enum Type type);
 
 //! ===========================================================================================
 /*

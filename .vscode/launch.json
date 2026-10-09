@@ -4,7 +4,7 @@
             "type": "lldb-dap",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/out/build/main/vit.exe",
+            "program": "${workspaceFolder}/build/main/vit.exe",
             "args": [],
             "env": [],
             "cwd": "${workspaceFolder}",

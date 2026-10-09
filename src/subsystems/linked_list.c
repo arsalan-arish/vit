@@ -42,13 +42,13 @@ list* List(void) {
     return self;
 }
 
-list* List_fromArray(const u8* arr, usize dataLen, usize arrLen) {
+list* List_fromArray(const u8* arr, usize size, usize arrLen) {
     
     list* self = List();
     if (!self) return null;
 
     for (usize i = 0; i < arrLen; i++) {
-        item* it = self->createItem(arr + (i * dataLen), dataLen);
+        item* it = self->createItem(arr + (i * size), size, OTHER);
         if (!it) return null;
 
         self->append(self, it);
@@ -75,9 +75,10 @@ static void free_list(list* self) {
 static void insert(list* self, item* it, isize index, b8 replace) {
 
     // Validate index
+	if (index < 0) index = self->getInvertedIndex(self, index);
     self->_checkIndexInRange(self, index);
-    b8 toAppend = llabs(index + 1) == self->len ? true : false;
-    if (self->err.code == list_INDEX_OUT_OF_RANGE && !toAppend) return;
+    b8 toAppend = index == self->len ? true : false;
+    if (self->err.is && !toAppend) return;    
 
     // Create a node
     _node* new = self->_createNode(it);
@@ -154,10 +155,10 @@ static isize search(list* self, item* it) {
     // O(n) Linear Search
     _node* currentNode = self->_first;
     for (usize i = 0; i < self->len; i++) {
-        if (currentNode->item->dataLen != it->dataLen) {
+        if (currentNode->item->size != it->size) {
             continue;
         }
-        if (memcmp(currentNode->item->data, it->data, it->dataLen) == 0) {
+        if (memcmp(currentNode->item->data, it->data, it->size) == 0) {
             return i;
         }
         currentNode = currentNode->next;
@@ -187,6 +188,60 @@ static void clear(list* self) {
 
 static void pprint(list* self) {
     printf("\nLen => %zu\n", self->len);
+    printf("{\n");
+
+    _node* currentNode = self->_first;
+    _node* nextNode;
+    for (usize i = 0; i < self->len; i++) {
+        printf("    ");
+
+        switch (currentNode->item->type) {
+			case I8:
+				printf("%d", *(i8*)currentNode->item->data);
+				break;
+			case I16:
+				printf("%d", *(i16*)currentNode->item->data);
+				break;
+			case I32:
+				printf("%d", *(i32*)currentNode->item->data);
+				break;
+			case I64:
+				printf("%lld", *(i64*)currentNode->item->data);
+				break;
+			case U8:
+				printf("%u", *(u8*)currentNode->item->data);
+				break;
+			case U16:
+				printf("%u", *(u16*)currentNode->item->data);
+				break;
+			case U32:
+				printf("%u", *(u32*)currentNode->item->data);
+				break;
+			case U64:
+				printf("%llu", *(u64*)currentNode->item->data);
+				break;
+			case F32:
+				printf("%f", *(float*)currentNode->item->data);
+				break;
+			case F64:
+				printf("%lf", *(double*)currentNode->item->data);
+				break;
+			case POINTER:
+				printf("POINTER ->%p", *(void**)currentNode->item->data);
+				break;
+			case OTHER:
+				printf("OTHER");
+				break;
+			case B8:
+				printf("%s", *(b8*)currentNode->item->data ? "true" : "false");
+				break;
+			}
+
+        currentNode = currentNode->next;
+        printf("\n");
+    }
+
+    printf("}\n");
 }
 
 static void _createItem_free(item* it) {
@@ -194,16 +249,21 @@ static void _createItem_free(item* it) {
     free(it);
 }
 
-static item* createItem(const void* src, usize dataLen) {
+static item* createItem(const void* src, usize size, enum Type type) {
 
     item* new = malloc(sizeof(item));
     if (!new) return null;
-    new->data = malloc(dataLen);
-    if (!new->data) free(new); return null;
+
+    new->data = malloc(size);
+    if (!new->data) {
+        free(new);
+        return null;
+    }
 
     new->free = _createItem_free;
-    new->dataLen = dataLen;
-    memmove(new->data, src, dataLen);
+    new->size = size;
+    new->type = type;
+    memmove(new->data, src, size);
 
     return new;
 }
@@ -290,10 +350,10 @@ static isize _optimizeIndex(list* self, isize index) {
 }
 
 static void _checkIndexInRange(list* self, isize index) {
-    if (index >= 0) {
-        if (!(index < self->len)) self->err.code = list_INDEX_OUT_OF_RANGE; return;
-    } else {
-        if (!(llabs(index+1) < self->len)) self->err.code = list_INDEX_OUT_OF_RANGE; return;
+	if (index < 0) index = self->getInvertedIndex(self, index);
+    if (!(index < self->len)) {
+        self->err.code = list_INDEX_OUT_OF_RANGE;
+        return;
     }
 }
 

@@ -47,3 +47,7 @@ target_compile_options(vit PRIVATE
 )
 
 ## === Done Replicating ===
+
+# Add tests subdirectory which builds the GTest suite. The tests use a mock
+# implementation when the real liist/list headers are not available.
+# add_subdirectory(tests)
